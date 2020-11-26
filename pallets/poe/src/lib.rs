@@ -39,7 +39,8 @@ decl_storage! {
 decl_event!(
 	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
 		 /// Event emitted when a proof has been claimed. [who, claim]
-		ClaimCreated(AccountId, Vec<u8>),
+        ClaimCreated(AccountId, Vec<u8>),
+        ClaimTransfered(AccountId, Vec<u8>),
 		/// Event emitted when a claim is revoked by the owner. [who, claim]
 		ClaimRevoked(AccountId, Vec<u8>),
 	}
@@ -68,7 +69,7 @@ decl_module! {
 		// Events must be initialized if they are used by the pallet.
 		fn deposit_event() = default;
 
-		#[weight = 10_000]
+		#[weight = 10_001]
         fn create_claim(origin, proof: Vec<u8>) {
             // Check that the extrinsic was signed and get the signer.
             // This function will return an error if the extrinsic is not signed.
@@ -88,7 +89,6 @@ decl_module! {
             Self::deposit_event(RawEvent::ClaimCreated(sender, proof));
         }
 
-        /// Allow the owner to revoke their claim.
         #[weight = 10_000]
         fn revoke_claim(origin, proof: Vec<u8>) {
             // Check that the extrinsic was signed and get the signer.
@@ -96,20 +96,34 @@ decl_module! {
             // https://substrate.dev/docs/en/knowledgebase/runtime/origin
             let sender = ensure_signed(origin)?;
 
-            // Verify that the specified proof has been claimed.
+            //Verify that the specified proof has been claimed.
             ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
 
-            // Get owner of the claim.
+            //Get owner of the claim.
             let (owner, _) = Proofs::<T>::get(&proof);
 
-            // Verify that sender of the current call is the claim owner.
+            //Verify that sender of the current call is the claim owner.
             ensure!(sender == owner, Error::<T>::NotProofOwner);
 
-            // Remove claim from storage.
+            //Remove claim from storage.
             Proofs::<T>::remove(&proof);
 
-            // Emit an event that the claim was erased.
+            //Emit an event that the claim was erased.
             Self::deposit_event(RawEvent::ClaimRevoked(sender, proof));
+        }
+
+        #[weight = 10_002]
+        fn transfer_claim(origin,  to,  claim: Vec<u8>) {
+            let sender = ensure_signed(origin)?;
+            let receiver = ensure_signed(to)?;
+
+            let current_block = <frame_system::Module<T>>::block_number();
+       
+            ensure!(sender == owner, Error::<T>::NotProofOwner);
+            Proofs::<T>::remove(&claim);
+            Proofs::<T>::insert(&proof, (&receiver, current_block));
+                   
+            Self::deposit_event(RawEvent::ClaimTransfered(sender, proof));
         }
 
 	}
