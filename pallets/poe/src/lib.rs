@@ -113,17 +113,18 @@ decl_module! {
         }
 
         #[weight = 10_002]
-        fn transfer_claim(origin,  to,  claim: Vec<u8>) {
+        fn transfer_claim(origin,  to: T::AccountId,  claim: Vec<u8>) {
             let sender = ensure_signed(origin)?;
-            let receiver = ensure_signed(to)?;
 
             let current_block = <frame_system::Module<T>>::block_number();
        
+            let (owner, _) = Proofs::<T>::get(&claim);
             ensure!(sender == owner, Error::<T>::NotProofOwner);
+
             Proofs::<T>::remove(&claim);
-            Proofs::<T>::insert(&proof, (&receiver, current_block));
+            Proofs::<T>::insert(&claim, (&to, current_block));
                    
-            Self::deposit_event(RawEvent::ClaimTransfered(sender, proof));
+            Self::deposit_event(RawEvent::ClaimTransfered(sender, claim));
         }
 
 	}
