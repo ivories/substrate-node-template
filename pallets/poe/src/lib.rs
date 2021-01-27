@@ -5,8 +5,9 @@
 /// https://substrate.dev/docs/en/knowledgebase/runtime/frame
 
 use frame_support::{
-    decl_module, decl_storage, decl_event, decl_error, ensure, StorageMap
+    decl_module, decl_storage, decl_event, decl_error, ensure, StorageMap,traits::{Get}
 };
+
 use frame_system::ensure_signed;
 use sp_std::vec::Vec;
 

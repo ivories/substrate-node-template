@@ -246,6 +246,7 @@ impl pallet_balances::Trait for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
+	pub const MaxClaimLength: u32 = 256;
 }
 
 impl pallet_transaction_payment::Trait for Runtime {
@@ -268,6 +269,7 @@ impl pallet_template::Trait for Runtime {
 
 impl pallet_poe::Trait for Runtime {
 	type Event = Event;
+	type MaxClaimLength = MaxClaimLength;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
