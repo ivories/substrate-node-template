@@ -17,6 +17,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+
 /// Configure the pallet by specifying the parameters and types on which it depends.
 pub trait Trait: frame_system::Trait {
 	/// Because this pallet emits events, it depends on the runtime's definition of an event.
@@ -58,7 +59,8 @@ decl_error! {
 		NoSuchProof,
 		/// The proof is claimed by another account, so caller can't revoke it.
         NotProofOwner,
-        ProofTooLong
+        ProofTooLong,
+        ProofAlreadyExist
 	}
 }
 
