@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 // 第一题: 视频中的 transfer 中没有判断 kitty 是不是 owner .需要加入 ensure!(owner == from.clone(), Error::<T>::RequireOwner)
-
+// 第二题: 在 mock.rs 注释 KittyIndex, 在 runtime/src/lib.rs 中的 impl pallet_kitties::Trait for Runtime  加入 KittyIndex
 
 use codec::{Encode, Decode};
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, fail,
