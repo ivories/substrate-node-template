@@ -1000,6 +1000,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dump"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2cdf33a83c5657a80b925bd6b340b9382e2a04c719df732b5d8c26b33bd2500a"
+
+[[package]]
 name = "dyn-clonable"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3544,6 +3550,7 @@ dependencies = [
 name = "pallet-kitties"
 version = "2.0.0"
 dependencies = [
+ "dump",
  "frame-support",
  "frame-system",
  "pallet-balances",

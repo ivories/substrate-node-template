@@ -275,12 +275,13 @@ impl pallet_poe::Trait for Runtime {
 	type MaxClaimLength = MaxClaimLength;
 }
 
-impl pallet_kitties::Trait for Runtime {
-	type Event = Event;
-	type Randomness = RandomnessCollectiveFlip;
-	type KittyIndex = u32;
-	type Currency = Balances;
-}
+pub type KittyIndex = u32;
+
+// impl pallet_kitties::Trait for Runtime {
+// 	type Event = Event;
+// 	type Randomness = RandomnessCollectiveFlip;
+// 	type KittyIndex = u32;
+// }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -300,7 +301,7 @@ construct_runtime!(
 		// Include the custom logic from the template pallet in the runtime.
 		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
 		PoeModule: pallet_poe::{Module, Call, Storage, Event<T>},
-		KittiesModule: pallet_kitties::{Module, Call, Storage, Event<T>},
+		// KittiesModule: pallet_kitties::{Module, Call, Storage, Event<T>}
 	}
 );
 
