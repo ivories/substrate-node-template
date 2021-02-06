@@ -10,12 +10,12 @@ import Balances from './Balances';
 import BlockNumber from './BlockNumber';
 import Events from './Events';
 import Interactor from './Interactor';
-import Kitties from './Kitties';
 import Metadata from './Metadata';
 import NodeInfo from './NodeInfo';
 import TemplateModule from './TemplateModule';
 import Transfer from './Transfer';
 import Upgrade from './Upgrade';
+import Kitties from './Kitties';
 
 function Main () {
   const [accountAddress, setAccountAddress] = useState(null);

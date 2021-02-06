@@ -1,12 +1,4 @@
-# Substrate Kitty Course Front-end
-
-![kitties-screenshot01](docs/kitties-screenshot01.png)
-
-This front-end is based on Substrate Front End Template and a kitty section is specially built to demonstrate using Polkadot-JS api to connect and interact with a Substrate node.
-
-A video demonstration of the front-end can be [seen here](https://www.awesomescreenshot.com/video/2196893?key=7749c0f9101a5791240bda8a391a1ce9).
-
-## Substrate Front End Template
+# Substrate Front End Template
 
 This template allows you to create a front-end application that connects to a
 [Substrate](https://github.com/paritytech/substrate) node back-end with minimal
@@ -66,7 +58,7 @@ More on [React environment variables](https://create-react-app.dev/docs/adding-c
 
 When writing and deploying your own front end, you should configure:
 
-* `CUSTOM_TYPES` in `src/config/common.json`. See
+* Custom types as JSON in `src/config/types.json`. See
   [Extending types](https://polkadot.js.org/api/start/types.extend.html).
 * `PROVIDER_SOCKET` in `src/config/production.json` pointing to your own
   deployed node.

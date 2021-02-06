@@ -84,14 +84,14 @@ const IMAGES = {
 };
 
 const dnaToAttributes = dna => {
-  const attribute = (index, type) => IMAGES[type][dna[index] % IMAGES[type].length];
+  const attribute = (type) => IMAGES[type][dna % IMAGES[type].length];
 
   return {
-    body: attribute(0, 'body'),
-    eyes: attribute(1, 'eyes'),
-    accessory: attribute(2, 'accessory'),
-    fur: attribute(3, 'fur'),
-    mouth: attribute(4, 'mouth')
+    body: attribute('body'),
+    eyes: attribute('eyes'),
+    accessory: attribute('accessory'),
+    fur: attribute('fur'),
+    mouth: attribute('mouth')
   };
 };
 
@@ -103,6 +103,7 @@ const KittyAvatar = props => {
   if (!dna) return null;
 
   const cat = dnaToAttributes(dna);
+  
   return <div style={outerStyle}>
     <img alt='body' src={cat.body} style={innerStyle} />
     <img alt='fur' src={cat.fur} style={innerStyle} />

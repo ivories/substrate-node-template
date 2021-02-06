@@ -14,7 +14,6 @@ function TxButton ({
   style = null,
   type = 'QUERY',
   attrs = null,
-  onClick = null,
   disabled = false
 }) {
   // Hooks
@@ -72,21 +71,20 @@ function TxButton ({
   const sudoTx = async () => {
     const fromAcct = await getFromAcct();
     const transformed = transformParams(paramFields, inputParams);
+    // transformed can be empty parameters
     const txExecute = transformed
       ? api.tx.sudo.sudo(api.tx[palletRpc][callable](...transformed))
       : api.tx.sudo.sudo(api.tx[palletRpc][callable]());
 
     const unsub = txExecute.signAndSend(fromAcct, txResHandler)
       .catch(txErrHandler);
-    // note: you cannot store a function directly in React state hook. You need to wrap it in
-    //   anonymous function. See: https://bit.ly/30hbINF
     setUnsub(() => unsub);
   };
 
   const uncheckedSudoTx = async () => {
     const fromAcct = await getFromAcct();
     const txExecute =
-      api.tx.sudo.sudoUncheckedWeight(api.tx[palletRpc][callable](...inputParams), 0);
+        api.tx.sudo.sudoUncheckedWeight(api.tx[palletRpc][callable](...inputParams), 0);
 
     const unsub = txExecute.signAndSend(fromAcct, txResHandler)
       .catch(txErrHandler);
@@ -96,6 +94,7 @@ function TxButton ({
   const signedTx = async () => {
     const fromAcct = await getFromAcct();
     const transformed = transformParams(paramFields, inputParams);
+    // transformed can be empty parameters
 
     const txExecute = transformed
       ? api.tx[palletRpc][callable](...transformed)
@@ -108,6 +107,7 @@ function TxButton ({
 
   const unsignedTx = async () => {
     const transformed = transformParams(paramFields, inputParams);
+    // transformed can be empty parameters
     const txExecute = transformed
       ? api.tx[palletRpc][callable](...transformed)
       : api.tx[palletRpc][callable]();
@@ -154,16 +154,6 @@ function TxButton ({
     (isConstant() && constant());
   };
 
-  // notes: If onClick handler is passed in, we want to call it. But we want call the handler
-  //   only when the unsubscription handler (unsub) is ready, so we can pass the unsub handler to
-  //   the onClick handler for processing. Thus we use a `useEffect` here.
-  useEffect(() => {
-    if (unsub && onClick) {
-      onClick(unsub);
-      setUnsub(null);
-    }
-  }, [unsub, onClick]);
-
   const transformParams = (paramFields, inputParams, opts = { emptyAsNull: true }) => {
     // if `opts.emptyAsNull` is true, empty param value will be added to res as `null`.
     //   Otherwise, it will not be added
@@ -176,8 +166,7 @@ function TxButton ({
       }
       return inputParam;
     });
-    const params = paramFields.map((field, ind) =>
-      ({ ...field, value: typeof paramVal[ind] === 'undefined' ? null : paramVal[ind] }));
+    const params = paramFields.map((field, ind) => ({ ...field, value: paramVal[ind] || null }));
 
     return params.reduce((memo, { type = 'string', value }) => {
       if (value == null || value === '') return (opts.emptyAsNull ? [...memo, null] : memo);
@@ -242,7 +231,6 @@ function TxButton ({
 TxButton.propTypes = {
   accountPair: PropTypes.object,
   setStatus: PropTypes.func.isRequired,
-  onClick: PropTypes.func,
   type: PropTypes.oneOf([
     'QUERY', 'RPC', 'SIGNED-TX', 'UNSIGNED-TX', 'SUDO-TX', 'UNCHECKED-SUDO-TX',
     'CONSTANT']).isRequired,

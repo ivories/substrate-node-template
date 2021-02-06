@@ -1,7 +1,7 @@
 import configCommon from './common.json';
-import types from './types.json';
 // Using `require` as `import` does not support dynamic loading (yet).
 const configEnv = require(`./${process.env.NODE_ENV}.json`);
+const types = require('./types.json');
 
 // Accepting React env vars and aggregating them into `config` object.
 const envVarNames = [
