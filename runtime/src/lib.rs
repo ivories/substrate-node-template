@@ -266,13 +266,29 @@ impl pallet_template::Trait for Runtime {
 	type Event = Event;
 }
 
-parameter_types! {
-	pub const MaxClaimLength: u32 = 5;
-}
-
 impl pallet_poe::Trait for Runtime {
 	type Event = Event;
-	type MaxClaimLength = MaxClaimLength;
+}
+
+impl pallet_coinflip::Trait for Runtime {
+	type Randomness = pallet_randomness_collective_flip::Module<Runtime>;
+	type Event = Event;
+}
+
+impl pallet_data_type::Trait for Runtime {
+	type Event = Event;
+}
+
+impl pallet_genesis_config::Trait for Runtime {
+	type Event = Event;
+}
+
+impl pallet_weight::Trait for Runtime {
+	type Event = Event;
+}
+
+impl pallet_benchmark_demo::Trait for Runtime {
+	type Event = Event;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -293,6 +309,11 @@ construct_runtime!(
 		// Include the custom logic from the template pallet in the runtime.
 		TemplateModule: pallet_template::{Module, Call, Storage, Event<T>},
 		PoeModule: pallet_poe::{Module, Call, Storage, Event<T>},
+		CoinFlipModule: pallet_coinflip::{Module, Call, Storage, Event<T>},
+		DataTypeModule: pallet_data_type::{Module, Call, Storage, Event},
+		GenesisConfigModule: pallet_genesis_config::{Module, Call, Storage, Event<T>, Config<T>},
+		WeightModule: pallet_weight::{Module, Call, Storage, Event<T>},
+		BenchmarkDemoModule: pallet_benchmark_demo::{Module, Call, Storage, Event<T>},
 	}
 );
 
@@ -482,6 +503,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
+			add_benchmark!(params, batches, pallet_benchmark_demo, BenchmarkDemoModule);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

@@ -1,10 +1,10 @@
 [package]
-authors = ['Kaichao']
-description = 'FRAME proof of existence pallet'
+authors = ['Kaichao <kaichaosuna@gmail.com>']
+description = 'A pallet to experience data type of runtime storage.'
 edition = '2018'
 homepage = 'https://substrate.dev'
 license = 'Unlicense'
-name = 'pallet-poe'
+name = 'pallet-data-type'
 repository = 'https://github.com/kaichaosun/play-substrate/'
 version = '2.0.0'
 
@@ -21,12 +21,13 @@ version = '1.3.4'
 [dependencies]
 frame-support = { default-features = false, version = '2.0.0' }
 frame-system = { default-features = false, version = '2.0.0' }
+pallet-timestamp = { default-features = false, version = '2.0.0' }
+sp-core = { default-features = false, version = '2.0.0' }
+sp-runtime = { default-features = false, version = '2.0.0' }
 sp-std = { default-features = false, version = '2.0.0' }
 
 [dev-dependencies]
-sp-core = { default-features = false, version = '2.0.0' }
 sp-io = { default-features = false, version = '2.0.0' }
-sp-runtime = { default-features = false, version = '2.0.0' }
 
 [features]
 default = ['std']
@@ -34,5 +35,8 @@ std = [
     'codec/std',
     'frame-support/std',
     'frame-system/std',
+    'pallet-timestamp/std',
+    'sp-core/std',
+    'sp-runtime/std',
     'sp-std/std',
 ]

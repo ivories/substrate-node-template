@@ -1,14 +1,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// Edit this file to define custom logic or remove it if it is not needed.
-/// Learn more about FRAME and the core library of Substrate FRAME pallets:
-/// https://substrate.dev/docs/en/knowledgebase/runtime/frame
+/// A module for proof of existence
 
 use frame_support::{
-    decl_module, decl_storage, decl_event, decl_error, ensure, StorageMap,traits::{Get}
+	decl_module,
+	decl_storage,
+	decl_event,
+	decl_error,
+	ensure,
+	dispatch::{DispatchResult},
 };
-
-use frame_system::ensure_signed;
+use frame_system::{
+	self as system,
+	ensure_signed,
+};
 use sp_std::vec::Vec;
 
 #[cfg(test)]
@@ -16,124 +21,93 @@ mod mock;
 
 #[cfg(test)]
 mod tests;
-
-
-/// Configure the pallet by specifying the parameters and types on which it depends.
-pub trait Trait: frame_system::Trait {
-	/// Because this pallet emits events, it depends on the runtime's definition of an event.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
-    
-    type MaxClaimLength: Get<u32>;
+/// The pallet's configuration trait.
+pub trait Trait: system::Trait {
+	/// The overarching event type.
+	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
 }
 
-// The pallet's runtime storage items.
-// https://substrate.dev/docs/en/knowledgebase/runtime/storage
+// This pallet's storage items.
 decl_storage! {
-	// A unique name is used to ensure that the pallet's storage items are isolated.
-	// This name may be updated, but each pallet in the runtime must use a unique name.
-	// ---------------------------------vvvvvvvvvvvvvv
 	trait Store for Module<T: Trait> as TemplateModule {
-		//Proof get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);	
-		Proofs: map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
+		Proofs get(fn proof): map hasher(twox_64_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
 	}
 }
 
-// Pallets use events to inform users when important changes are made.
-// https://substrate.dev/docs/en/knowledgebase/runtime/events
+// The pallet's events
 decl_event!(
-	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
-		 /// Event emitted when a proof has been claimed. [who, claim]
-        ClaimCreated(AccountId, Vec<u8>),
-        ClaimTransfered(AccountId, Vec<u8>),
-		/// Event emitted when a claim is revoked by the owner. [who, claim]
+	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
+		ClaimCreated(AccountId, Vec<u8>),
 		ClaimRevoked(AccountId, Vec<u8>),
 	}
 );
 
-// Errors inform users that something went wrong.
+// The pallet's errors
 decl_error! {
 	pub enum Error for Module<T: Trait> {
-		/// The proof has already been claimed.
-		ProofAlreadyClaimed,
-		/// The proof does not exist, so it cannot be revoked.
-		NoSuchProof,
-		/// The proof is claimed by another account, so caller can't revoke it.
-        NotProofOwner,
-        ProofTooLong,
-        ProofAlreadyExist
+		ProofAlreadyExist,
+		ClaimNotExist,
+		NotClaimOwner,
 	}
 }
 
-// Dispatchable functions allows users to interact with the pallet and invoke state changes.
-// These functions materialize as "extrinsics", which are often compared to transactions.
-// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
+// The pallet's dispatchable functions.
 decl_module! {
+	/// The module declaration.
 	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
-		// Errors must be initialized if they are used by the pallet.
+		// Initializing errors
+		// this includes information about your errors in the node's metadata.
+		// it is needed only if you are using errors in your pallet
 		type Error = Error<T>;
 
-		// Events must be initialized if they are used by the pallet.
+		// Initializing events
+		// this is needed only if you are using events in your pallet
 		fn deposit_event() = default;
 
-		#[weight = 10_001]
-        fn create_claim(origin, proof: Vec<u8>) {
-            // Check that the extrinsic was signed and get the signer.
-            // This function will return an error if the extrinsic is not signed.
-            // https://substrate.dev/docs/en/knowledgebase/runtime/origin
-            let sender = ensure_signed(origin)?;
+		#[weight = 0]
+		pub fn create_claim(origin, claim: Vec<u8>) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
-            // Verify that the specified proof has not already been claimed.
-            ensure!(!Proofs::<T>::contains_key(&proof), Error::<T>::ProofAlreadyClaimed);
+			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
+			
+			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
 
-            ensure!(T::MaxClaimLength::get() >= proof.len() as u32, Error::<T>::ProofTooLong);
+			Self::deposit_event(RawEvent::ClaimCreated(sender, claim));
 
-            // Get the block number from the FRAME System module.
-            let current_block = <frame_system::Module<T>>::block_number();
+			Ok(())
+		}
 
-            // Store the proof with the sender and block number.
-            Proofs::<T>::insert(&proof, (&sender, current_block));
+		#[weight = 0]
+		pub fn revoke_claim(origin, claim: Vec<u8>) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
-            // Emit an event that the claim was created.
-            Self::deposit_event(RawEvent::ClaimCreated(sender, proof));
-        }
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
-        #[weight = 10_000]
-        fn revoke_claim(origin, proof: Vec<u8>) {
-            // Check that the extrinsic was signed and get the signer.
-            // This function will return an error if the extrinsic is not signed.
-            // https://substrate.dev/docs/en/knowledgebase/runtime/origin
-            let sender = ensure_signed(origin)?;
+			let (owner, _) = Proofs::<T>::get(&claim);
 
-            //Verify that the specified proof has been claimed.
-            ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
 
-            //Get owner of the claim.
-            let (owner, _) = Proofs::<T>::get(&proof);
+			Proofs::<T>::remove(&claim);
 
-            //Verify that sender of the current call is the claim owner.
-            ensure!(sender == owner, Error::<T>::NotProofOwner);
+			Self::deposit_event(RawEvent::ClaimRevoked(sender, claim));
 
-            //Remove claim from storage.
-            Proofs::<T>::remove(&proof);
+			Ok(())
+		}
 
-            //Emit an event that the claim was erased.
-            Self::deposit_event(RawEvent::ClaimRevoked(sender, proof));
-        }
+		#[weight = 0]
+		pub fn transfer_claim(origin, claim: Vec<u8>, dest: T::AccountId) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
-        #[weight = 10_002]
-        fn transfer_claim(origin,  to: T::AccountId,  claim: Vec<u8>) {
-            let sender = ensure_signed(origin)?;
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
-            let current_block = <frame_system::Module<T>>::block_number();
-       
-            let (owner, _) = Proofs::<T>::get(&claim);
-            ensure!(sender == owner, Error::<T>::NotProofOwner);
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
 
-            Proofs::<T>::remove(&claim);
-            Proofs::<T>::insert(&claim, (&to, current_block));
-                   
-            Self::deposit_event(RawEvent::ClaimTransfered(sender, claim));
-        }
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
+
+			Proofs::<T>::insert(&claim, (dest, system::Module::<T>::block_number()));
+
+			Ok(())
+		}
 
 	}
 }
