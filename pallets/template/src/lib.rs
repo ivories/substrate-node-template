@@ -10,6 +10,8 @@ use frame_system::ensure_signed;
 #[cfg(test)]
 mod mock;
 
+mod benchmarking;
+
 #[cfg(test)]
 mod tests;
 
